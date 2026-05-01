@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build . -t snakeskin
+docker build -t snakeskin . --no-cache

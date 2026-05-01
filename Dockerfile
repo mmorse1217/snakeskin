@@ -1,19 +1,43 @@
 from ubuntu:18.04
 
-RUN apt-get update && \ 
-    apt-get install --no-install-recommends -y wget \
-    bzip2 \
+ENV VIM_DEV=1 DEBIAN_FRONTEND=noninteractive \
+    PATH="~/miniconda3/bin:${PATH}"  \
+    TERM=xterm-256color 
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get update && \
+    apt-get install -y \
+    ca-certificates \
+    sudo \
+    git \
     x11-apps \
-    vim && \
-    rm -rf /var/lib/apt/lists/*
+    wget \
+    ttf-dejavu \
+    --no-install-recommends 
+    #&& \
+    #rm -rf /var/lib/apt/lists/*
 
-# install anaconda
-RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
-    bash Miniconda3-latest-Linux-x86_64.sh -b && \
-    echo 'export PATH="/root/miniconda3/bin:$PATH"' | cat - ~/.bashrc > /tmp/out \
-    &&  mv /tmp/out ~/.bashrc && \
-    rm Miniconda3-latest-Linux-x86_64.sh
+RUN git clone https://github.com/mmorse1217/terraform --recursive
 
+WORKDIR /terraform 
+RUN bash dotfiles/setup.sh 
+
+RUN bash programs/python.sh 
+
+# build vim
+RUN bash vim/build_from_source.sh  
+
+RUN bash vim/lang-servers/setup.sh  
 ENV PATH /root/miniconda3/bin:$PATH
+RUN bash vim/lang-servers/python-language-server.sh  
 
-RUN conda install -y nose matplotlib ipython jupyter 
+# install plugins
+RUN bash vim/install_plugins.sh
+
+
+
+RUN conda install -y nose matplotlib ipython jupyter numpy scipy
+RUN pip install jupyter
+WORKDIR /src
+CMD ["/bin/bash"]
+
+#WORKDIR /root
